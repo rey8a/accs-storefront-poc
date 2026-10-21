@@ -1,0 +1,89 @@
+{
+  "total": 20,
+  "offset": 0,
+  "limit": 20,
+  ":type": "sheet",
+  ":version": 3,
+  "data": [
+    {
+      "Key": "commerce-core-endpoint",
+      "Value": "https://na1-sandbox.api.commerce.adobe.com/99KczrjNJgWyV4LRYNKyjv/graphql"
+    },
+    {
+      "Key": "commerce-endpoint",
+      "Value": "https://na1-sandbox.api.commerce.adobe.com/99KczrjNJgWyV4LRYNKyjv/graphql"
+    },
+    {
+      "Key": "Magento-Environment-Id",
+      "Value": "99KczrjNJgWyV4LRYNKyjv"
+    },
+    {
+      "Key": "Magento-Website-Code",
+      "Value": "base"
+    },
+    {
+      "Key": "Magento-Store-View-Code",
+      "Value": "default"
+    },
+    {
+      "Key": "Magento-Store-Code",
+      "Value": "default"
+    },
+    {
+      "Key": "Magento-Customer-Group",
+      "Value": "0"
+    },
+    {
+      "Key": "commerce-store-view-code",
+      "Value": "default"
+    },
+    {
+      "Key": "commerce-root-category-id",
+      "Value": "2"
+    },
+    {
+      "Key": "enable-wishlist",
+      "Value": "true"
+    },
+    {
+      "Key": "commerce-free-gifts-enabled",
+      "Value": "false"
+    },
+    {
+      "Key": "adobe-commerce-optimizer",
+      "Value": "false"
+    },
+    {
+      "Key": "commerce-recommendations",
+      "Value": "true"
+    },
+    {
+      "Key": "commerce-account-path",
+      "Value": "/customer/account"
+    },
+    {
+      "Key": "commerce-cart-path",
+      "Value": "/cart"
+    },
+    {
+      "Key": "commerce-checkout-path",
+      "Value": "/checkout"
+    },
+    {
+      "Key": "commerce-return-path",
+      "Value": "/customer/returns"
+    },
+    {
+      "Key": "commerce-login-path",
+      "Value": "/customer/login"
+    },
+    {
+      "Key": "store-name",
+      "Value": "Agilent Commerce"
+    },
+    {
+      "Key": "locale",
+      "Value": "en_US"
+    }
+  ]
+}
