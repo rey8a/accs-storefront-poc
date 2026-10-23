@@ -651,6 +651,10 @@ export async function commerceEndpointWithQueryParams() {
  * @returns {string|null} The SKU extracted from the URL, or null if not found
  */
 function getSkuFromUrl() {
+  // Support ?sku=XXX query param (used when CDN URL rewriting is not available)
+  const skuParam = new URLSearchParams(window.location.search).get('sku');
+  if (skuParam) return skuParam;
+
   const path = window.location.pathname;
   const result = path.match(/\/products\/[\w|-]+\/([\w|-]+)$/);
   return result?.[1];
