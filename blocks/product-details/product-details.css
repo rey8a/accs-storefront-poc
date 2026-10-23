@@ -127,3 +127,16 @@
   overflow: hidden;
   white-space: nowrap;
 }
+
+/* Prevent upscaling low-res images beyond their native size */
+.product-details__gallery img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  max-width: min(100%, 380px);
+  max-height: 380px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  margin: auto;
+  display: block;
+}
