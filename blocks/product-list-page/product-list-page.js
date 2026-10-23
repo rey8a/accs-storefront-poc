@@ -23,6 +23,92 @@ import { getSearchStateFromUrl, applySearchStateToUrl } from './search-url.js';
 import '../../scripts/initializers/search.js';
 import '../../scripts/initializers/wishlist.js';
 
+// ---------------------------------------------------------------------------
+// SKU-based fallback for when Live Search is not yet indexed
+// Queries products(skus:[...]) from the Catalog Service using a static index.
+// ---------------------------------------------------------------------------
+
+let catalogIndex = null;
+async function fetchCatalogIndex() {
+  if (catalogIndex) return catalogIndex;
+  try {
+    const res = await fetch('/scripts/catalog-index.json');
+    if (res.ok) catalogIndex = await res.json();
+  } catch { /* ignore */ }
+  return catalogIndex;
+}
+
+async function fetchProductsBySkus(skus, endpoint, headers) {
+  if (!skus.length) return [];
+  const query = `{ products(skus: ${JSON.stringify(skus)}) {
+    sku name shortDescription urlKey
+    images(roles: ["small_image"]) { url label }
+  } }`;
+  try {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify({ query }),
+    });
+    const { data } = await res.json();
+    return data?.products ?? [];
+  } catch { return []; }
+}
+
+function renderSkuGrid(container, products, priceMap) {
+  container.innerHTML = '';
+  const grid = document.createElement('ol');
+  grid.className = 'product-list-page__sku-grid';
+  products.forEach((p) => {
+    const price = priceMap[p.sku];
+    const img = p.images?.[0]?.url ?? '';
+    const li = document.createElement('li');
+    li.className = 'product-list-page__sku-item';
+    li.innerHTML = `
+      <a href="/products/${p.urlKey ?? p.sku}" class="product-list-page__sku-link">
+        ${img ? `<img src="${img}" alt="${p.name}" loading="lazy" />` : '<div class="product-list-page__sku-no-img"></div>'}
+        <p class="product-list-page__sku-name">${p.name}</p>
+        ${price ? `<p class="product-list-page__sku-price">$${Number(price).toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>` : ''}
+        <p class="product-list-page__sku-desc">${p.shortDescription ?? ''}</p>
+      </a>`;
+    grid.appendChild(li);
+  });
+  container.appendChild(grid);
+}
+
+async function trySkuFallback(block, config) {
+  const index = await fetchCatalogIndex();
+  if (!index) return false;
+
+  const urlpath = (config.urlpath || '').trim();
+  const categoryProducts = index.categories?.[urlpath] ?? [];
+  if (!categoryProducts.length) return false;
+
+  // Build price map from static index
+  const priceMap = Object.fromEntries(categoryProducts.map((p) => [p.sku, p.price]));
+  const skus = categoryProducts.map((p) => p.sku);
+
+  // Resolve CS endpoint + headers from the already-initialised FetchGraphQL instance
+  const { CS_FETCH_GRAPHQL } = await import('../../scripts/commerce.js');
+  const { endpoint, headers } = CS_FETCH_GRAPHQL.getConfig?.() ?? {};
+  const csEndpoint = endpoint ?? 'https://na1-sandbox.api.commerce.adobe.com/99KczrjNJgWyV4LRYNKyjv/graphql';
+
+  const products = await fetchProductsBySkus(skus, csEndpoint, headers ?? {});
+
+  // Merge CS data with static price map (CS has no price field yet)
+  const merged = products.length ? products : categoryProducts.map((p) => ({
+    sku: p.sku, name: p.name, shortDescription: p.description, urlKey: p.sku.toLowerCase(),
+  }));
+
+  block.innerHTML = '';
+  const wrapper = document.createElement('div');
+  wrapper.className = 'search__wrapper search__wrapper--sku-fallback';
+  block.appendChild(wrapper);
+
+  renderSkuGrid(wrapper, merged, priceMap);
+  return true;
+}
+
 export default async function decorate(block) {
   const labels = await fetchPlaceholders();
 
@@ -68,6 +154,7 @@ export default async function decorate(block) {
   window.history.replaceState({}, '', normalizedUrl.toString());
 
   // Request search based on the page type on block load
+  let searchFailed = false;
   if (config.urlpath) {
     // If it's a category page...
     await search({
@@ -81,8 +168,13 @@ export default async function decorate(block) {
         visibilityFilter,
         ...userFilters,
       ],
-    }).catch(() => {
-      console.error('Error searching for products');
+    }).catch(async (e) => {
+      const noIndex = e?.errors?.some?.((err) => err?.extensions?.errorCode === 1001)
+        || String(e).includes('No index');
+      if (noIndex) {
+        searchFailed = await trySkuFallback(block, config);
+      }
+      if (!searchFailed) console.error('Error searching for products', e);
     });
   } else {
     // Search page: dropin uses only the request (no URL parsing).
@@ -93,10 +185,17 @@ export default async function decorate(block) {
       sort: searchState.sort,
       // Always add visibility filter to the request
       filter: [visibilityFilter, ...userFilters],
-    }).catch((e) => {
-      console.error('Error searching for products', e);
+    }).catch(async (e) => {
+      const noIndex = e?.errors?.some?.((err) => err?.extensions?.errorCode === 1001)
+        || String(e).includes('No index');
+      if (noIndex) {
+        searchFailed = await trySkuFallback(block, config);
+      }
+      if (!searchFailed) console.error('Error searching for products', e);
     });
   }
+
+  if (searchFailed) return; // SKU fallback rendered — skip dropin containers
 
   const requiresPdpConfiguration = (product) => product.typename === 'ComplexProductView'
     || product.attributes?.some((attr) => attr.name === 'ac_giftcard');
