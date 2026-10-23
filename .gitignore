@@ -1,6 +1,5 @@
 node_modules/
 .aem/
-scripts/__dropins__/
 scripts/acdl/
 dist/
 .env
