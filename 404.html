@@ -18,6 +18,14 @@
         }
     }
   </script>
+  <script nonce="aem">
+    // Redirect /products/<sku> to /products/default?sku=<sku>
+    // (EDS has no CDN rewrite for this pattern, so clean PDP URLs 404 without this)
+    (function () {
+      var m = window.location.pathname.match(/^\/products\/((?!default$)[\w.-]+)$/);
+      if (m) window.location.replace('/products/default?sku=' + m[1]);
+    }());
+  </script>
   <script nonce="aem" type="text/javascript">
     window.isErrorPage = true;
     window.errorCode = '404';

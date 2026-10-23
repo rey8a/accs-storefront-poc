@@ -656,8 +656,12 @@ function getSkuFromUrl() {
   if (skuParam) return skuParam;
 
   const path = window.location.pathname;
-  const result = path.match(/\/products\/[\w|-]+\/([\w|-]+)$/);
-  return result?.[1];
+  // Two-segment: /products/<urlkey>/<sku>
+  const twoSeg = path.match(/\/products\/[\w|-]+\/([\w|-]+)$/);
+  if (twoSeg) return twoSeg[1];
+  // Single-segment: /products/<sku> (excludes the /products/default template path)
+  const oneSeg = path.match(/\/products\/((?!default$)[\w|-]+)$/);
+  return oneSeg?.[1];
 }
 
 /**
