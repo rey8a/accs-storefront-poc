@@ -63,7 +63,7 @@ function renderSkuGrid(container, products, priceMap) {
   grid.className = 'product-list-page__sku-grid';
   products.forEach((p) => {
     const price = priceMap[p.sku];
-    const img = p.images?.[0]?.url ?? '';
+    const img = p.image || p.images?.[0]?.url || '';
     const li = document.createElement('li');
     li.className = 'product-list-page__sku-item';
     li.innerHTML = `
@@ -92,12 +92,13 @@ async function trySkuFallback(block, config, csEndpoint, csHeaders) {
 
   const csProducts = await fetchProductsBySkus(skus, csEndpoint, csHeaders);
 
-  // Fall back to static data if Catalog Service returned nothing
+  // Merge CS data with static index — CS has names/urlKeys, index has prices+images
+  const staticBysku = Object.fromEntries(categoryProducts.map((p) => [p.sku, p]));
   const merged = csProducts.length
-    ? csProducts
+    ? csProducts.map((p) => ({ ...p, image: staticBysku[p.sku]?.image || '' }))
     : categoryProducts.map((p) => ({
       sku: p.sku, name: p.name, shortDescription: p.description,
-      urlKey: p.sku.toLowerCase(), images: [],
+      urlKey: p.sku.toLowerCase(), images: [], image: p.image || '',
     }));
 
   block.innerHTML = '';

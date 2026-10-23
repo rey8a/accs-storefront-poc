@@ -81,6 +81,39 @@ function formatNumericAttributeValue(value) {
   return new Intl.NumberFormat(document.documentElement.lang).format(Number(trimmed));
 }
 
+// Inject a static image into the gallery when Catalog Service returns none.
+// Reads the image URL from /scripts/catalog-index.json by SKU.
+async function injectStaticImageIfNeeded(sku) {
+  if (!sku) return;
+  try {
+    const index = await fetch('/scripts/catalog-index.json').then((r) => r.json());
+    let imgUrl = null;
+    for (const prods of Object.values(index?.categories ?? {})) {
+      const p = prods.find((x) => x.sku === sku);
+      if (p?.image) { imgUrl = p.image; break; }
+    }
+    if (!imgUrl) return;
+
+    const tryInject = () => {
+      const placeholderSrc = 'data:image/gif';
+      const imgs = document.querySelectorAll('.product-details__gallery img, [class*="ProductGallery"] img');
+      imgs.forEach((img) => {
+        if (!img.src || img.src.startsWith(placeholderSrc) || img.naturalWidth <= 1) {
+          img.src = imgUrl;
+          img.style.objectFit = 'contain';
+          img.style.padding = '1rem';
+          img.removeAttribute('srcset');
+        }
+      });
+    };
+
+    // Try immediately and after a short delay for dropin render
+    tryInject();
+    setTimeout(tryInject, 800);
+    setTimeout(tryInject, 2000);
+  } catch { /* ignore */ }
+}
+
 export default async function decorate(block) {
   const eventProduct = events.lastPayload('pdp/data') ?? null;
   // bug: the pdp sends an object with event data even if product is not found.
@@ -346,6 +379,10 @@ export default async function decorate(block) {
   events.on('pdp/data', (data) => {
     isOutOfStock = data?.inStock === false;
     addToCart.setProps((prev) => ({ ...prev, disabled: isOutOfStock }));
+    // Inject static image if Catalog Service returned none
+    if (data?.sku && !data?.images?.length) {
+      injectStaticImageIfNeeded(data.sku);
+    }
   }, { eager: true });
 
   events.on('pdp/valid', (valid) => {
