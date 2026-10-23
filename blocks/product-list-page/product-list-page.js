@@ -67,7 +67,7 @@ function renderSkuGrid(container, products, priceMap) {
     const li = document.createElement('li');
     li.className = 'product-list-page__sku-item';
     li.innerHTML = `
-      <a href="/products/${p.urlKey ?? p.sku.toLowerCase()}" class="product-list-page__sku-link">
+      <a href="/products/${p.urlKey ?? p.sku.toLowerCase()}/${p.sku.toLowerCase()}" class="product-list-page__sku-link">
         ${img ? `<img src="${img}" alt="${p.name}" loading="lazy" />` : '<div class="product-list-page__sku-no-img"></div>'}
         <p class="product-list-page__sku-name">${p.name}</p>
         ${price ? `<p class="product-list-page__sku-price">$${Number(price).toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>` : ''}
