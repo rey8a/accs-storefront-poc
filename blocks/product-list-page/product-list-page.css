@@ -190,3 +190,14 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
+
+/* Override the search__wrapper grid so the SKU grid can span full width */
+.block.product-list-page .search__wrapper--sku-fallback {
+  display: block;
+  padding: var(--spacing-medium, 1.5rem) 0;
+}
+
+.block.product-list-page .search__wrapper--sku-fallback .product-list-page__sku-grid {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  width: 100%;
+}
