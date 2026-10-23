@@ -39,19 +39,6 @@ async function fetchCatalogIndex() {
   return catalogIndex;
 }
 
-// Returns true when productSearch is unavailable for this environment.
-async function liveSearchUnavailable(csEndpoint, csHeaders) {
-  try {
-    const res = await fetch(csEndpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...csHeaders },
-      body: JSON.stringify({ query: '{ productSearch(phrase:"") { total_count } }' }),
-    });
-    const json = await res.json();
-    return json?.errors?.some((e) => e?.extensions?.errorCode === 1001
-      || e?.message?.includes('No index'));
-  } catch { return false; }
-}
 
 async function fetchProductsBySkus(skus, endpoint, headers) {
   if (!skus.length) return [];
@@ -127,16 +114,19 @@ export default async function decorate(block) {
   const config = readBlockConfig(block);
   const pageSize = parseInt(config.pagesize, 10) || 9;
 
-  // Probe Live Search before touching the dropin — if it has no index, render
-  // the SKU-based fallback immediately and skip the rest of this function.
+  // If the static catalog index has products for this category slug, render
+  // them directly via products(skus:[...]) — bypasses Live Search entirely.
+  // Remove this block once Live Search is provisioned for this environment.
   if (config.urlpath) {
-    const { CS_FETCH_GRAPHQL } = await import('../../scripts/commerce.js');
-    const csConfig = CS_FETCH_GRAPHQL.getConfig?.() ?? {};
-    const csEndpoint = csConfig.endpoint
-      ?? 'https://na1-sandbox.api.commerce.adobe.com/99KczrjNJgWyV4LRYNKyjv/graphql';
-    const csHeaders = csConfig.headers ?? {};
-
-    if (await liveSearchUnavailable(csEndpoint, csHeaders)) {
+    const index = await fetchCatalogIndex();
+    const slug = (config.urlpath || '').trim();
+    if (index?.categories?.[slug]?.length) {
+      const { CS_FETCH_GRAPHQL } = await import('../../scripts/commerce.js');
+      const csConfig = CS_FETCH_GRAPHQL.getConfig?.() ?? {};
+      const csEndpoint = typeof csConfig.endpoint === 'string' && csConfig.endpoint
+        ? csConfig.endpoint
+        : 'https://na1-sandbox.api.commerce.adobe.com/99KczrjNJgWyV4LRYNKyjv/graphql';
+      const csHeaders = csConfig.headers ?? {};
       await trySkuFallback(block, config, csEndpoint, csHeaders);
       return;
     }
