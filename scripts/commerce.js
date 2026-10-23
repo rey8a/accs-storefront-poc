@@ -557,6 +557,29 @@ export async function fetchPlaceholders(path) {
 }
 
 /**
+ * Transforms AEM spreadsheet config format ({ data: [{Key, Value}] }) into the
+ * structure expected by initializeConfig: { public: { default: { ...values, headers: { all: {} } } } }.
+ * Keys matching Magento-* or x-* are treated as GraphQL request headers.
+ */
+function transformSpreadsheetConfig(raw) {
+  const defaultConfig = {};
+  const allHeaders = {};
+
+  if (Array.isArray(raw.data)) {
+    for (const { Key, Value } of raw.data) {
+      if (/^(Magento-|x-)/i.test(Key)) {
+        allHeaders[Key] = Value;
+      } else {
+        defaultConfig[Key.toLowerCase()] = Value;
+      }
+    }
+  }
+
+  defaultConfig.headers = { all: allHeaders, cs: {} };
+  return { public: { default: defaultConfig } };
+}
+
+/**
  * Fetches config from remote and saves in session, then returns it, otherwise
  * returns if it already exists.
  *
@@ -582,10 +605,11 @@ export async function getConfigFromSession() {
   } catch (e) {
     const config = await fetch(configURL);
     if (!config.ok) throw new Error('Failed to fetch config');
-    const configJSON = await config.json();
-    configJSON[':expiry'] = Math.round(Date.now() / 1000) + 7200;
-    window.sessionStorage.setItem('config', JSON.stringify(configJSON));
-    return configJSON;
+    const raw = await config.json();
+    const transformed = transformSpreadsheetConfig(raw);
+    transformed[':expiry'] = Math.round(Date.now() / 1000) + 7200;
+    window.sessionStorage.setItem('config', JSON.stringify(transformed));
+    return transformed;
   }
 }
 
