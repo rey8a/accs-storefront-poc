@@ -45,7 +45,7 @@ if (!TOKEN && !DRY_RUN) {
 
 // ─── REST helpers ─────────────────────────────────────────────────────────────
 async function restPost(path, body) {
-  const url = `${BASE_URL}/rest/default/V1${path}`;
+  const url = `${BASE_URL}/v1${path}`;
   if (DRY_RUN) {
     console.log(`  [dry-run] POST ${url}`);
     console.log(`           ${JSON.stringify(body).slice(0, 120)}…`);
@@ -64,7 +64,7 @@ async function restPost(path, body) {
 }
 
 async function restPut(path, body) {
-  const url = `${BASE_URL}/rest/default/V1${path}`;
+  const url = `${BASE_URL}/v1${path}`;
   if (DRY_RUN) {
     console.log(`  [dry-run] PUT  ${url}`);
     console.log(`           ${JSON.stringify(body).slice(0, 120)}…`);
@@ -83,7 +83,7 @@ async function restPut(path, body) {
 }
 
 async function restGet(path) {
-  const url = `${BASE_URL}/rest/default/V1${path}`;
+  const url = `${BASE_URL}/v1${path}`;
   if (DRY_RUN) {
     console.log(`  [dry-run] GET  ${url}`);
     return null;
@@ -129,11 +129,13 @@ async function ensureCategory(name, parentId = 2) {
 }
 
 // ─── Attribute creation ───────────────────────────────────────────────────────
+// All configurable attributes use frontend_input:'select' so backend_type is always 'int'
+// (the int stores the option_id, not the display value)
 const CONFIGURABLE_ATTRIBUTES = {
-  column_length:  { label: 'Column Length (mm)', type: 'int',    options: ['30','50','100','150','200'] },
-  inner_diameter: { label: 'Inner Diameter (mm)', type: 'decimal', options: ['2.1','3.0','4.6'] },
-  gc_length:      { label: 'Column Length (m)',  type: 'int',    options: ['5','10','15','20','30','60'] },
-  film_thickness: { label: 'Film Thickness (µm)', type: 'decimal', options: ['0.10','0.18','0.25','0.36','0.50','1.00'] },
+  column_length:  { label: 'Column Length (mm)', options: ['30','50','100','150','200'] },
+  inner_diameter: { label: 'Inner Diameter (mm)', options: ['2.1','3.0','4.6'] },
+  gc_length:      { label: 'Column Length (m)',   options: ['5','10','15','20','30','60'] },
+  film_thickness: { label: 'Film Thickness (µm)', options: ['0.10','0.18','0.25','0.36','0.50','1.00'] },
 };
 
 const attributeIdCache = {};
@@ -156,16 +158,14 @@ async function ensureAttribute(code) {
   const result = await restPost('/products/attributes', {
     attribute: {
       attribute_code: code,
-      frontend_label: def.label,
-      backend_type: def.type === 'int' ? 'int' : 'decimal',
+      default_frontend_label: def.label,
+      backend_type: 'int',
       frontend_input: 'select',
       is_required: false,
       is_searchable: true,
       is_filterable: true,
       is_comparable: true,
       is_visible_on_front: true,
-      is_html_allowed_on_front: false,
-      used_for_sort_by: false,
       options: options.map(o => ({ label: o.label, sort_order: 0, is_default: false, store_labels: [] })),
     },
   });
@@ -248,17 +248,13 @@ async function importConfigurable(product, categoryId) {
     if (!attrId || attrId === 'dry-run') continue;
 
     const uniqueValues = [...new Set(child_options.map(o => o[attrCode]))];
-    const values = uniqueValues.map((v, i) => ({
-      value_index: i + 1,
-      label: String(v),
-    }));
+    const values = uniqueValues.map((_, i) => ({ value_index: i + 1 }));
 
     await restPost(`/configurable-products/${encodeURIComponent(sku)}/options`, {
       option: {
         attribute_id: String(attrId),
         label: CONFIGURABLE_ATTRIBUTES[attrCode]?.label || attrCode,
         position: 0,
-        is_use_default: true,
         values,
       },
     });
