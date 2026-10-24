@@ -4,44 +4,98 @@
 }
 
 .hero {
-  position: relative;
-  min-height: 400px;
-  display: flex;
-  align-items: center;
+  width: 100%;
 }
 
-.hero .default-content-wrapper {
+/* Each hero row has an image (background) + text */
+.hero > div {
+  position: relative;
+  min-height: 380px;
+  overflow: hidden;
+}
+
+.hero > div:first-child {
+  min-height: 480px;
+}
+
+/* Picture fills its row as background */
+.hero picture {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+}
+
+.hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Hide the <p> that wraps the picture — it's shown via absolute positioning */
+.hero p:has(> picture) {
+  display: none;
+}
+
+/* Text wrapper sits above the image */
+.hero > div > div {
   position: relative;
   z-index: 1;
-  max-width: 580px;
+  max-width: 600px;
   padding: 48px 32px 48px 48px;
-  background: linear-gradient(90deg, rgb(0 0 0 / 55%) 0%, rgb(0 0 0 / 30%) 70%, rgb(0 0 0 / 0%) 100%);
+  min-height: inherit;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
+/* Gradient overlay so text is always readable */
+.hero > div:first-child > div {
+  background: linear-gradient(90deg, rgb(0 0 0 / 65%) 0%, rgb(0 0 0 / 38%) 65%, transparent 100%);
+}
+
+.hero > div:not(:first-child) > div {
+  background: linear-gradient(90deg, rgb(0 0 0 / 55%) 0%, rgb(0 0 0 / 28%) 60%, transparent 100%);
+}
+
+/* Typography */
 .hero h1 {
+  color: #fff;
   font-size: clamp(2.8rem, 4vw, 5rem);
   font-weight: 300;
-  line-height: 1.1;
+  line-height: 1.15;
+  margin: 0 0 0.4em;
+  text-wrap: balance;
+  max-width: 520px;
+}
+
+.hero h2 {
   color: #fff;
-  margin-top: 0;
+  font-size: clamp(2.2rem, 3vw, 3.4rem);
+  font-weight: 300;
+  line-height: 1.2;
+  margin: 0 0 0.4em;
   text-wrap: balance;
 }
 
 .hero p {
   color: rgb(255 255 255 / 90%);
   font-size: 1.6rem;
-  margin-top: 0.75em;
+  margin: 0 0 var(--spacing-medium);
+  max-width: 440px;
 }
 
+/* CTAs */
 .hero a.button,
 .hero p.button-wrapper a {
+  align-self: flex-start;
   background-color: var(--color-agilent-teal, #00b5e2);
   border-color: var(--color-agilent-teal, #00b5e2);
-  color: #fff;
   border-radius: 2px;
-  padding: 0.65em 1.6em;
+  color: #fff;
   font-weight: 400;
   letter-spacing: 0.03em;
+  padding: 0.65em 1.6em;
 }
 
 .hero a.button:hover,
@@ -51,26 +105,19 @@
   text-decoration: none;
 }
 
-.hero picture {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-}
-
-.hero img {
-  object-fit: cover;
-  width: 100%;
-  height: 100%;
-}
-
 @media (max-width: 900px) {
-  .hero {
-    min-height: 300px;
+  .hero > div,
+  .hero > div:first-child {
+    min-height: 260px;
   }
 
-  .hero .default-content-wrapper {
+  .hero > div > div {
     padding: 32px 24px;
-    max-width: unset;
-    background: linear-gradient(180deg, rgb(0 0 0 / 50%) 0%, rgb(0 0 0 / 25%) 100%);
+  }
+
+  .hero > div:first-child > div,
+  .hero > div:not(:first-child) > div {
+    background: linear-gradient(180deg, rgb(0 0 0 / 55%) 0%, rgb(0 0 0 / 25%) 100%);
+    min-height: 260px;
   }
 }
