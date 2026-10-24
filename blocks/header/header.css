@@ -903,3 +903,100 @@ body:has(.seller-assisted-buying-banner) {
     display: inline-block;
   }
 }
+
+/* ── Agilent brand overrides ─────────────────────────────────────────── */
+
+/* Dark navy header */
+header .nav-wrapper {
+  background-color: var(--color-agilent-navy, #002a5c);
+  border-bottom: none;
+}
+
+/* Logo — inject via background on the brand link.
+   Works for both the GitHub nav.html (which has an <img>) and the
+   DA.live nav (which puts text like "Home" in the link). */
+header nav .nav-brand a {
+  font-size: 0;           /* hide any text from the content source */
+  display: inline-flex;
+  align-items: center;
+  min-width: 130px;
+  height: 36px;
+  background: url('/icons/agilent-logo.svg') no-repeat left center;
+  background-size: contain;
+  text-decoration: none;
+}
+
+/* If the nav already contains an <img> (updated nav.html), show it */
+header nav .nav-brand img {
+  display: block;
+  height: 36px;
+  width: auto;
+}
+
+/* White nav section links */
+header nav .nav-sections ul > li,
+header nav .nav-sections ul > li > a {
+  color: var(--color-neutral-50);
+}
+
+header nav .nav-sections .default-content-wrapper > ul > li:hover,
+header nav .nav-sections .nav-drop[aria-expanded='true'] {
+  background-color: rgb(255 255 255 / 10%);
+}
+
+/* Mobile hamburger — white lines */
+header nav .nav-hamburger button {
+  background-color: transparent;
+  color: var(--color-neutral-50);
+}
+
+/* Tool icon buttons — invert to white */
+header nav .nav-tools {
+  background: transparent;
+}
+
+header nav .nav-tools-wrapper > button {
+  color: var(--color-neutral-50);
+}
+
+header nav .nav-tools button.nav-cart-button,
+header nav .nav-tools button.nav-wishlist-button,
+header nav .nav-tools button.nav-search-button {
+  filter: brightness(0) invert(1);
+}
+
+/* Cart badge stays teal */
+header nav .nav-tools button.nav-cart-button[data-count]::after {
+  background-color: var(--color-agilent-teal, #00b5e2);
+}
+
+/* Dropdown panels stay white */
+header nav .nav-tools-panel {
+  background: var(--background-color);
+}
+
+/* Mobile: nav drawer uses navy */
+@media (max-width: 899px) {
+  header .nav-wrapper.active,
+  header .nav-wrapper:has(nav[aria-expanded='true']) {
+    background-color: var(--color-agilent-navy, #002a5c);
+  }
+
+  header nav[aria-expanded='true'] .nav-tools {
+    background: var(--color-agilent-navy, #002a5c);
+  }
+
+  header nav .nav-sections ul li a {
+    color: var(--color-neutral-50);
+  }
+
+  header nav .nav-sections ul > li.nav-drop .submenu-header,
+  header nav .nav-sections ul > li.nav-drop.active .submenu-wrapper {
+    background: var(--color-agilent-navy, #002a5c);
+  }
+
+  header nav .nav-sections ul > li.nav-drop .submenu-header {
+    color: var(--color-neutral-50);
+  }
+}
+

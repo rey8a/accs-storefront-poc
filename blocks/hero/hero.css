@@ -5,23 +5,56 @@
 
 .hero {
   position: relative;
-  padding: 40px 24px;
-  min-height: 300px;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+}
+
+.hero .default-content-wrapper {
+  position: relative;
+  z-index: 1;
+  max-width: 580px;
+  padding: 48px 32px 48px 48px;
+  background: linear-gradient(90deg, rgb(0 0 0 / 55%) 0%, rgb(0 0 0 / 30%) 70%, rgb(0 0 0 / 0%) 100%);
 }
 
 .hero h1 {
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-  color: var(--background-color);
+  font-size: clamp(2.8rem, 4vw, 5rem);
+  font-weight: 300;
+  line-height: 1.1;
+  color: #fff;
+  margin-top: 0;
+  text-wrap: balance;
+}
+
+.hero p {
+  color: rgb(255 255 255 / 90%);
+  font-size: 1.6rem;
+  margin-top: 0.75em;
+}
+
+.hero a.button,
+.hero p.button-wrapper a {
+  background-color: var(--color-agilent-teal, #00b5e2);
+  border-color: var(--color-agilent-teal, #00b5e2);
+  color: #fff;
+  border-radius: 2px;
+  padding: 0.65em 1.6em;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+}
+
+.hero a.button:hover,
+.hero p.button-wrapper a:hover {
+  background-color: var(--color-agilent-teal-dark, #0097c4);
+  border-color: var(--color-agilent-teal-dark, #0097c4);
+  text-decoration: none;
 }
 
 .hero picture {
   position: absolute;
-  z-index: -1;
   inset: 0;
-  object-fit: cover;
-  box-sizing: border-box;
+  z-index: 0;
 }
 
 .hero img {
@@ -30,8 +63,14 @@
   height: 100%;
 }
 
-@media (min-width: 900px) {
+@media (max-width: 900px) {
   .hero {
-    padding: 40px 32px;
+    min-height: 300px;
+  }
+
+  .hero .default-content-wrapper {
+    padding: 32px 24px;
+    max-width: unset;
+    background: linear-gradient(180deg, rgb(0 0 0 / 50%) 0%, rgb(0 0 0 / 25%) 100%);
   }
 }

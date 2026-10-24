@@ -1,1 +1,36 @@
-/* add global styles that can be loaded post LCP here */
+/* ── Agilent global polish (loaded post-LCP) ────────────────────────── */
+
+/* Section headings match Agilent's h2 treatment */
+main .section > div > h2 {
+  font-size: clamp(2rem, 2.8vw, 2.8rem);
+  font-weight: 300;
+  color: var(--color-agilent-navy, #002a5c);
+  margin-bottom: var(--spacing-medium);
+  padding-bottom: var(--spacing-xsmall);
+  border-bottom: 2px solid var(--color-agilent-teal, #00b5e2);
+  display: inline-block;
+}
+
+/* Links in body copy use teal */
+main a:not(.button):not(.dropin-design a) {
+  color: var(--color-agilent-teal, #00b5e2);
+}
+
+main a:not(.button):not(.dropin-design a):hover {
+  color: var(--color-agilent-teal-dark, #0097c4);
+}
+
+/* "Highlight" section variant gets a light-blue tint */
+main .section.highlight {
+  background-color: #e8f6fb;
+}
+
+/* Agilent-style columns layout */
+.columns-wrapper .columns {
+  gap: var(--spacing-big);
+}
+
+/* Product carousel section padding */
+.product-carousel-container {
+  overflow-x: hidden;
+}
