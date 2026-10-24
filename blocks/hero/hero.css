@@ -32,9 +32,11 @@
   display: block;
 }
 
-/* Hide the <p> that wraps the picture — it's shown via absolute positioning */
+/* The <p> wrapping the picture has no height (picture is absolute),
+   zero its margins so it doesn't add dead space */
 .hero p:has(> picture) {
-  display: none;
+  margin: 0;
+  line-height: 0;
 }
 
 /* Text wrapper sits above the image */
