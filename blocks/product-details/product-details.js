@@ -6,6 +6,18 @@ import {
 } from '@dropins/tools/components.js';
 import { h } from '@dropins/tools/preact.js';
 import { events } from '@dropins/tools/event-bus.js';
+
+// Returns true when the product should use Request-a-Quote instead of Add to Cart.
+// Matches: price === 0, a custom "quote_only" attribute, or the block's own data attribute.
+function isQuoteOnly(productData, block) {
+  if (block?.dataset?.quoteOnly === 'true') return true;
+  if (!productData) return false;
+  const attr = productData.attributes?.find((a) => a.name === 'quote_only');
+  if (attr?.value === '1' || attr?.value === 'true') return true;
+  // Treat $0 products with no price range as quote-only (instruments)
+  const amount = productData.priceRange?.minimum?.final?.amount ?? productData.price?.final?.amount;
+  return !amount?.value && amount?.value !== undefined;
+}
 import { tryRenderAemAssetsImage } from '@dropins/tools/lib/aem/assets.js';
 import * as pdpApi from '@dropins/storefront-pdp/api.js';
 import { render as pdpRendered } from '@dropins/storefront-pdp/render.js';
@@ -286,6 +298,67 @@ export default async function decorate(block) {
       product,
     })($wishlistToggleBtn),
   ]);
+
+  // ── Quote-only: swap Add-to-Cart for Request a Quote ────────────────────
+  let quoteOnlyMode = isQuoteOnly(product, block);
+
+  // Also check after pdp/data fires (product may not be available at render time)
+  events.on('pdp/data', (data) => {
+    if (!quoteOnlyMode && isQuoteOnly(data, block)) {
+      quoteOnlyMode = true;
+      // Hide standard commerce controls; show quote form
+      $addToCart.style.display = 'none';
+      $quantity.style.display = 'none';
+      $price.style.display = 'none';
+      renderQuoteSection(data);
+    }
+  }, { eager: false });
+
+  function renderQuoteSection(productData) {
+    const quoteSection = document.createElement('div');
+    quoteSection.className = 'product-details__quote';
+    quoteSection.innerHTML = `
+      <div class="product-details__quote-badge">Request a Quote</div>
+      <p class="product-details__quote-note">
+        This product is available through our sales team. Contact us for pricing, configuration options, and availability.
+      </p>
+      <div class="product-details__quote-actions">
+        <button class="product-details__quote-btn product-details__quote-btn--primary" type="button">
+          Request a Quote
+        </button>
+        <button class="product-details__quote-btn product-details__quote-btn--secondary" type="button">
+          Talk to a Specialist
+        </button>
+      </div>
+    `;
+    // Wire up quote button → opens mailto or an RFQ URL
+    const [rfqBtn, specialistBtn] = quoteSection.querySelectorAll('button');
+    rfqBtn.addEventListener('click', () => {
+      const subject = encodeURIComponent(`Quote Request: ${productData?.name || 'Product'} (${productData?.sku || ''})`);
+      const body = encodeURIComponent(
+        `Hello,\n\nI would like to request a quote for:\n\nProduct: ${productData?.name || ''}\nSKU: ${productData?.sku || ''}\nURL: ${window.location.href}\n\nPlease provide pricing and availability.\n`,
+      );
+      window.location.href = `mailto:sales@agilent.com?subject=${subject}&body=${body}`;
+    });
+    specialistBtn.addEventListener('click', () => {
+      window.open('https://www.agilent.com/en/contact-us', '_blank', 'noopener');
+    });
+
+    // Insert after the existing buttons container
+    const buttonsContainer = block.querySelector('.product-details__buttons');
+    if (buttonsContainer) {
+      buttonsContainer.insertAdjacentElement('afterend', quoteSection);
+    } else {
+      block.querySelector('.product-details__right-column')?.append(quoteSection);
+    }
+  }
+
+  if (quoteOnlyMode) {
+    $addToCart.style.display = 'none';
+    $quantity.style.display = 'none';
+    $price.style.display = 'none';
+    if (product) renderQuoteSection(product);
+  }
 
   // Configuration – Button - Add to Cart
   const addToCart = await UI.render(Button, {
