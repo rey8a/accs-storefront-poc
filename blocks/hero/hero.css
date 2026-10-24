@@ -4,42 +4,42 @@
 }
 
 .hero {
+  position: relative;
   width: 100%;
+  overflow: hidden;
 }
 
-/* Each hero row: JS sets the background-image */
+/* Each slide */
 .hero > div {
-  position: relative;
-  min-height: 380px;
+  position: absolute;
+  inset: 0;
+  min-height: 480px;
   background-color: var(--color-agilent-navy, #002a5c);
   background-size: cover;
   background-position: center;
   display: flex;
   align-items: stretch;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
 }
 
-.hero > div:first-child {
-  min-height: 480px;
+.hero > div.active {
+  position: relative;
+  opacity: 1;
+  pointer-events: auto;
 }
 
-/* Text wrapper on top of background image */
+/* Text wrapper */
 .hero > div > div {
   position: relative;
   z-index: 1;
   max-width: 600px;
-  padding: 48px 32px 48px 48px;
+  padding: 72px 32px 72px 48px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-}
-
-/* Gradient so text is always readable */
-.hero > div:first-child > div {
   background: linear-gradient(90deg, rgb(0 0 0 / 65%) 0%, rgb(0 0 0 / 38%) 65%, transparent 100%);
-}
-
-.hero > div:not(:first-child) > div {
-  background: linear-gradient(90deg, rgb(0 0 0 / 55%) 0%, rgb(0 0 0 / 28%) 60%, transparent 100%);
 }
 
 /* Typography */
@@ -65,11 +65,11 @@
 .hero p {
   color: rgb(255 255 255 / 90%);
   font-size: 1.6rem;
-  margin: 0 0 var(--spacing-medium);
+  margin: 0 0 var(--spacing-medium, 1.6rem);
   max-width: 440px;
 }
 
-/* CTAs */
+/* CTA buttons */
 .hero a.button,
 .hero p.button-wrapper a {
   align-self: flex-start;
@@ -89,18 +89,74 @@
   text-decoration: none;
 }
 
+/* Prev / Next buttons */
+.hero-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background: rgb(0 0 0 / 30%);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem;
+  line-height: 1;
+  transition: background 0.2s;
+}
+
+.hero-nav:hover {
+  background: rgb(0 0 0 / 55%);
+}
+
+.hero-prev { left: 16px; }
+.hero-next { right: 16px; }
+
+/* Dots */
+.hero-dots {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  gap: 8px;
+}
+
+.hero-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid rgb(255 255 255 / 70%);
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.hero-dot.active {
+  background: #fff;
+  border-color: #fff;
+}
+
 @media (max-width: 900px) {
-  .hero > div,
-  .hero > div:first-child {
+  .hero > div {
     min-height: 260px;
   }
 
   .hero > div > div {
     padding: 32px 24px;
+    background: linear-gradient(180deg, rgb(0 0 0 / 55%) 0%, rgb(0 0 0 / 25%) 100%);
   }
 
-  .hero > div:first-child > div,
-  .hero > div:not(:first-child) > div {
-    background: linear-gradient(180deg, rgb(0 0 0 / 55%) 0%, rgb(0 0 0 / 25%) 100%);
+  .hero-nav {
+    width: 36px;
+    height: 36px;
+    font-size: 2rem;
   }
 }

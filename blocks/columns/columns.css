@@ -1,0 +1,23 @@
+.columns > div {
+  display: flex;
+  gap: var(--spacing-large, 3.2rem);
+}
+
+.columns > div > div {
+  flex: 1;
+}
+
+.columns.columns-img-col > div > div.columns-img-col {
+  flex: 0 0 auto;
+}
+
+.columns img {
+  width: 100%;
+  height: auto;
+}
+
+@media (max-width: 768px) {
+  .columns > div {
+    flex-direction: column;
+  }
+}
